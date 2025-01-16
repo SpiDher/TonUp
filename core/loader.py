@@ -6,16 +6,28 @@ from aiogram.enums import ParseMode
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from core.config import logger
+from Data.database import engine,Base
+from Data.database import AsyncSessionLocal
 
-
+async def get_db():
+    db = AsyncSessionLocal()
+    try: 
+        yield db
+    except Exception:
+        await db.rollback()
+    finally:
+        await db.commit()
+        await db.close()
 
 #Initializing the bot and dispatcher
 @asynccontextmanager
 async def lifespan(app:FastAPI):
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+        logger.info('Models Migrated')
     await bot.set_webhook(WEB_HOOK)
     logger.info("Webhook has been set.")
     yield
-    
     await bot.session.close()
 app = FastAPI(lifespan=lifespan)
 
@@ -29,3 +41,4 @@ command_router = Router()
 
 dp.include_router(inline_router)
 dp.include_router(command_router)
+
