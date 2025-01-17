@@ -16,11 +16,15 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram_tonconnect.handlers import AiogramTonConnectHandlers
 from aiogram_tonconnect.middleware import AiogramTonConnectMiddleware
+from redis.asyncio import Redis
+
+
 
 # Your bot token
-storage = RedisStorage.from_url(REDIS_DSN)
+redis = Redis.from_url(REDIS_DSN, decode_responses=True)
 # List of wallets to exclude
 EXCLUDE_WALLETS = ["mytonwallet"]
+storage = RedisStorage(redis)
 
 bot = Bot(token=Token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=storage)
@@ -36,15 +40,14 @@ command_router = Router()
 dp.include_router(wallet_router)
 dp.include_router(command_router)
 async def main(): 
-
     # Creating a dispatcher object using the specified storage
     # Registering middleware for TON Connect processing
     dp.update.middleware.register(
         AiogramTonConnectMiddleware(
-            redis=storage.redis,
+            storage=redis,
             manifest_url=MANIFEST_URL,
             exclude_wallets=EXCLUDE_WALLETS,
-            qrcode_type="url",  # or "bytes" if you prefer to generate QR codes locally.
+  
         )
     )
 
@@ -69,9 +72,10 @@ async def lifespan(app:FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         logger.info('Models Migrated')
     await bot.set_webhook(WEB_HOOK)
+    logger.info("Webhook has been set.")
     await main()
     logger.info("Bot and dispatcher started.")
-    logger.info("Webhook has been set.")
+    
     yield
     await bot.session.close()
 app = FastAPI(lifespan=lifespan)
