@@ -2,6 +2,6 @@
     "url": "https://c3a4-197-211-63-161.ngrok-free.app",                       
     "name": "TON PENGUIN BOT",                      
     "iconUrl": "https://i.ibb.co/xs2fbTS/Screenshot-20250111-011230.jpg",               
-    "termsOfUseUrl": "<terms-of-use-url>",     
-    "privacyPolicyUrl": "<privacy-policy-url>" 
+    "termsOfUseUrl": "https://raw.githubusercontent.com/SpiDher/TonUp/main/depends/terms-of-use.txt",     
+    "privacyPolicyUrl": "https://raw.githubusercontent.com/SpiDher/TonUp/main/depends/privacy-policy.txt" 
 }
