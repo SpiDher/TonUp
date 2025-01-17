@@ -16,15 +16,17 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from aiogram_tonconnect.handlers import AiogramTonConnectHandlers
 from aiogram_tonconnect.middleware import AiogramTonConnectMiddleware
-from redis.asyncio import Redis
+from aiogram_tonconnect.tonconnect.storage.base import ATCRedisStorage
+from aiogram_tonconnect.utils.qrcode import QRUrlProvider
+
 
 
 
 # Your bot token
-redis = Redis.from_url(REDIS_DSN, decode_responses=True)
+storage = RedisStorage.from_url(REDIS_DSN,)
 # List of wallets to exclude
-EXCLUDE_WALLETS = ["mytonwallet"]
-storage = RedisStorage(redis)
+EXCLUDE_WALLETS = []
+
 
 bot = Bot(token=Token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(storage=storage)
@@ -44,10 +46,10 @@ async def main():
     # Registering middleware for TON Connect processing
     dp.update.middleware.register(
         AiogramTonConnectMiddleware(
-            storage=redis,
+            storage=ATCRedisStorage(storage.redis),
             manifest_url=MANIFEST_URL,
             exclude_wallets=EXCLUDE_WALLETS,
-  
+            qrcode_provider=QRUrlProvider(),
         )
     )
 
