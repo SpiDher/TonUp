@@ -11,34 +11,47 @@ from Data.database import AsyncSessionLocal
 from aiogram import Router, F
 from aiogram.enums import ChatType
 from aiogram import Dispatcher
-from aiogram_tonconnect import ATCManager
+from core.config import REDIS_DSN,MANIFEST_URL
+from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.redis import RedisStorage
+from aiogram_tonconnect.handlers import AiogramTonConnectHandlers
+from aiogram_tonconnect.middleware import AiogramTonConnectMiddleware
 
-def setup_middleware(dp: Dispatcher, atc_manager: ATCManager):
-    dp.message.middleware(atc_manager.middleware())
-    dp.callback_query.middleware(atc_manager.middleware())
+# Your bot token
+storage = RedisStorage.from_url(REDIS_DSN)
+# List of wallets to exclude
+EXCLUDE_WALLETS = ["mytonwallet"]
 
-"""
-Asynchronously acquires a database session for use within an async context manager.
+bot = Bot(token=Token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+dp = Dispatcher(storage=storage)
 
-This function is designed to be used with the `async with` statement to ensure that the database session is properly
-managed and committed or rolled back, even in the event of an exception.
+wallet_router = Router()
 
-Parameters:
-None
+wallet_router.message.filter(F.chat.type == ChatType.PRIVATE)
+wallet_router.callback_query.filter(F.message.chat.type == ChatType.PRIVATE)
+# Create a router for Aiogram commands
 
-Returns:
-AsyncSessionLocal: An instance of the database session, which can be used within an async context manager.
+command_router = Router()
 
-Example usage:
+dp.include_router(wallet_router)
+dp.include_router(command_router)
+async def main(): 
 
-```python
-async def some_async_function():
-    async with get_db() as db:
-        # Perform database operations using `db`
-        result = await db.query(SomeModel).first()
-        return result
+    # Creating a dispatcher object using the specified storage
+    # Registering middleware for TON Connect processing
+    dp.update.middleware.register(
+        AiogramTonConnectMiddleware(
+            redis=storage.redis,
+            manifest_url=MANIFEST_URL,
+            exclude_wallets=EXCLUDE_WALLETS,
+            qrcode_type="url",  # or "bytes" if you prefer to generate QR codes locally.
+        )
+    )
 
-"""
+    # Registering TON Connect handlers
+    AiogramTonConnectHandlers().register(dp)
+
+
 async def get_db():
     db = AsyncSessionLocal()
     try: 
@@ -56,26 +69,16 @@ async def lifespan(app:FastAPI):
         await conn.run_sync(Base.metadata.create_all)
         logger.info('Models Migrated')
     await bot.set_webhook(WEB_HOOK)
+    await main()
+    logger.info("Bot and dispatcher started.")
     logger.info("Webhook has been set.")
     yield
     await bot.session.close()
 app = FastAPI(lifespan=lifespan)
 
 # Create Aiogram bot and dispatcher
-bot = Bot(token=Token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher()
 
-wallet_router = Router()
 
-wallet_router.message.filter(F.chat.type == ChatType.PRIVATE)
-wallet_router.callback_query.filter(F.message.chat.type == ChatType.PRIVATE)
-# Create a router for Aiogram commands
 
-command_router = Router()
 
-dp.include_router(wallet_router)
-dp.include_router(command_router)
-
-atc_manager = ATCManager()
-setup_middleware(dp, atc_manager)
 

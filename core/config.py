@@ -16,3 +16,7 @@ This is the official Penguin NFT Bot, Kidly connect your Ton wallet Below to get
 
 Help_message='''
 This is the official <b>Penguin NFT Bot</b>, Kindly connect your Ton wallet Below to get started.\n Choose any of the available options below to get started: \n run /start to see the options available to you \n run /help to see the options available to you \n run /connect to connect your wallet to the bot \n run /disconnect to disconnect your wallet from the bot \n run /balance to check your wallet balance \n run /mint to mint a new NFT \n run /transfer to transfer an NFT \n run /list to list all NFTs in your wallet \n run /details to get details of an NFT \n run /delete to delete an NFT \n run /update to update an NFT \n run /search to search for an NFT \n run /about to get information about the bot \n run /contact to get in touch with the developers \n run /exit to exit the bot'''
+
+REDIS_DSN = os.getenv('REDIS_DSN')
+EXCLUDE_WALLETS = ["mytonwallet"]
+MANIFEST_URL = os.getenv('MANIFEST_URL')
