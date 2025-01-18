@@ -53,6 +53,7 @@ async def select_language_handler(call: CallbackQuery, atc_manager: ATCManager) 
     :param atc_manager: ATCManager instance for managing TON Connect integration.
     :return: None
     """
+    
     # Check if the call data is in supported languages:
     if call.data in ["ru", "en"]:
         # Updating the language in the aiogram-tonconnect interface

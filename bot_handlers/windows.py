@@ -7,6 +7,7 @@ from aiogram.utils import markdown
 from aiogram_tonconnect import ATCManager
 from aiogram_tonconnect.tonconnect.models import AccountWallet, AppWallet
 
+from core.config import logger
 
 # Define a state group for the user with two states
 class UserState(StatesGroup):
@@ -36,7 +37,6 @@ async def select_language_window(event_from_user: User, atc_manager: ATCManager,
         [Button(text="Русский", callback_data="ru"),
          Button(text="English", callback_data="en")]
     ])
-
     # Sending the message and updating user state
     await atc_manager._send_message(text, reply_markup=reply_markup)
     await atc_manager.state.set_state(UserState.select_language)

@@ -18,8 +18,9 @@ from aiogram_tonconnect.handlers import AiogramTonConnectHandlers
 from aiogram_tonconnect.middleware import AiogramTonConnectMiddleware
 from aiogram_tonconnect.tonconnect.storage.base import ATCRedisStorage
 from aiogram_tonconnect.utils.qrcode import QRUrlProvider
+import os
 
-
+file_path= os.path.join(os.path.dirname(__file__),'wallets_fallback.json')
 
 
 # Your bot token
@@ -41,7 +42,8 @@ command_router = Router()
 
 dp.include_router(wallet_router)
 dp.include_router(command_router)
-async def main(): 
+async def main():
+    
     # Creating a dispatcher object using the specified storage
     # Registering middleware for TON Connect processing
     dp.update.middleware.register(
@@ -50,6 +52,7 @@ async def main():
             manifest_url=MANIFEST_URL,
             exclude_wallets=EXCLUDE_WALLETS,
             qrcode_provider=QRUrlProvider(),
+            file_path= file_path,
         )
     )
 
