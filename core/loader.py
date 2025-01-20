@@ -16,7 +16,7 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.redis import RedisStorage
 from tonutils.tonconnect import TonConnect
 from redis.asyncio import Redis
-from storage import TCRedisStorage
+from core.storage import TCRedisStorage
 
 # Your bot token
 redis = Redis.from_url(REDIS_DSN,)

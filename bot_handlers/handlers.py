@@ -40,8 +40,11 @@ async def start_command(message: Message, state: FSMContext) -> None:
     await create_user(user=user)
     connector = await tc.init_connector(message.from_user.id)
     rpc_request_id = (await state.get_data()).get("rpc_request_id")
-    if connector.is_transaction_pending(rpc_request_id):
-        connector.cancel_pending_transaction(rpc_request_id)
+    try:
+        if connector.is_transaction_pending(rpc_request_id):
+            connector.cancel_pending_transaction(rpc_request_id)
+    except Exception as e:
+        logger.error(f'Error: {e}')
 
     if not connector.connected:
         await connect_wallet_window(state, message.from_user.id)
