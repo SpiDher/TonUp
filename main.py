@@ -1,7 +1,7 @@
 from core.config import logger
 from fastapi import Request, HTTPException,Depends
 from aiogram.types import Update
-from core.loader import dp,bot,app
+from core.loader import dp,bot
 from core.config import WEBHOOK_PATH
 from bot_handlers import handlers
 from core.loader import get_db
