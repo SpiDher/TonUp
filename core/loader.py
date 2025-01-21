@@ -18,17 +18,18 @@ from tonutils.tonconnect import TonConnect
 from redis.asyncio import Redis
 from core.storage import TCRedisStorage
 
+
 # Your bot token
 redis = Redis.from_url(REDIS_DSN,)
 # List of wallets to exclude
 EXCLUDE_WALLETS = []
-
+tc_storage = TCRedisStorage(redis)
 
 bot = Bot(token=Token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher(storage=RedisStorage(redis), bot=bot)
+dp = Dispatcher( bot=bot)
 
 wallet_router = Router()
-tc = TonConnect(storage=TCRedisStorage(redis), manifest_url=MANIFEST_URL)
+tc = TonConnect(storage=tc_storage, manifest_url=MANIFEST_URL)
 command_router = Router()
 dp.include_router(wallet_router)
 dp.include_router(command_router)
