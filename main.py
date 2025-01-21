@@ -10,8 +10,10 @@ from Data.schemas import UserShow,UserCreate
 from Data.models import User
 from sqlalchemy.future import select
 import uvicorn
+from fastapi import FastAPI
+from core.loader import lifespan
 
-
+app = FastAPI(lifespan=lifespan)
 
 @app.post(WEBHOOK_PATH)
 async def handle_webhook(request: Request) -> dict:
