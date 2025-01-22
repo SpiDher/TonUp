@@ -70,6 +70,21 @@ class AttributeDict(SimpleNamespace):
 
     def get(self, item, default=None):
         return getattr(self, item, default)
+    
+    def to_dict(self):
+        result = {}
+        for key, value in self.__dict__.items():
+            if isinstance(value, AttributeDict):
+                result[key] = value.to_dict()
+            elif isinstance(value, list):
+                result[key] = [
+                    item.to_dict() if isinstance(item, AttributeDict) else item for item in value
+                ]
+            else:
+                result[key] = value
+        return result
+
+
 async def get_wallets():
     async with aiofiles.open(os.path.join(os.path.dirname(__file__), 'wallets-v2.json'), 'r') as file:
         data = json.loads(await file.read())

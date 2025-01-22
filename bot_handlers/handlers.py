@@ -35,7 +35,7 @@ async def help_handler(message: Message) -> None:
 
 @wallet_router.message(CommandStart())
 async def start_command(message: Message, state: FSMContext) -> None:
-    user= UserCreate(Username=message.from_user.username,Tg_id=message.from_user.id,Fullname=message.from_user.full_name)
+    user= UserCreate(Username=str(message.from_user.username),Tg_id=message.from_user.id,Fullname=message.from_user.full_name)
     await create_user(user=user)
     connector = await tc.init_connector(message.from_user.id)
     rpc_request_id = (await state.get_data()).get("rpc_request_id")
