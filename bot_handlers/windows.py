@@ -1,21 +1,16 @@
 import base64
 from contextlib import suppress
 from typing import List
-
-from aiogram import Dispatcher, Bot
-from aiogram.client.default import DefaultBotProperties
-from aiogram.filters import CommandStart
+from core.loader import get_wallets
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.storage.redis import RedisStorage
-from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message, CallbackQuery
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.markdown import hide_link, hcode
 
 from tonutils.tonconnect import TonConnect
 from tonutils.tonconnect.models import WalletApp, Event, EventError, SendTransactionResponse
 from tonutils.tonconnect.utils.exceptions import TonConnectError, UserRejectsError, RequestTimeoutError
-from tonutils.wallet.data import TransferData
-from core.loader import dp,bot,tc
+from core.loader import dp,bot,tc,logger
 
 async def delete_last_message(user_id: int, message_id: int) -> None:
     state = dp.fsm.resolve_context(bot, user_id, user_id)
@@ -78,27 +73,29 @@ def _go_to_main_menu_markup() -> InlineKeyboardMarkup:
 
 
 async def connect_wallet_window(state: FSMContext, user_id: int) -> None:
-    connector = await tc.init_connector(user_id)
-    state_data = await state.get_data()
-    wallets = await tc.get_wallets()
+    try:
+        connector = await tc.init_connector(user_id)
+        state_data = await state.get_data()
+        wallets = await get_wallets()
 
-    selected_wallet = state_data.get("selected_wallet", wallets[0].app_name)
-    selected_wallet = next(w for w in wallets if w.app_name == selected_wallet)
-    connect_url = await connector.connect_wallet(wallet_app=selected_wallet)
+        selected_wallet = state_data.get("selected_wallet", wallets[0].app_name)
+        selected_wallet = next(w for w in wallets if w.app_name == selected_wallet)
+        connect_url = await connector.connect_wallet(wallet_app=selected_wallet)
 
-    qrcode_url = (
-        f"https://qrcode.ness.su/create?"
-        f"box_size=20&border=7&image_padding=20"
-        f"&data={base64.b64encode(connect_url.encode()).decode()}"
-        f"&image_url={base64.b64encode(selected_wallet.image.encode()).decode()}"
-    )
+        qrcode_url = (
+            f"https://qrcode.ness.su/create?"
+            f"box_size=20&border=7&image_padding=20"
+            f"&data={base64.b64encode(connect_url.encode()).decode()}"
+            f"&image_url={base64.b64encode(selected_wallet.image.encode()).decode()}"
+        )
 
-    text = f"{hide_link(qrcode_url)}Connect your wallet!"
-    reply_markup = _connect_wallet_markup(wallets, selected_wallet, connect_url)
+        text = f"{hide_link(qrcode_url)}Connect your wallet!"
+        reply_markup = _connect_wallet_markup(wallets, selected_wallet, connect_url)
 
-    message = await bot.send_message(chat_id=user_id, text=text, reply_markup=reply_markup)
-    await delete_last_message(user_id, message.message_id)
-
+        message = await bot.send_message(chat_id=user_id, text=text, reply_markup=reply_markup)
+        await delete_last_message(user_id, message.message_id)
+    except Exception as e:
+        logger.info('Error\n',e)
 
 async def wallet_connected_window(user_id: int) -> None:
     connector = await tc.init_connector(user_id)

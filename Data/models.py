@@ -7,7 +7,7 @@ class User(Base):
     __tablename__ = 'User'
     id: Mapped[int] = mapped_column('id', primary_key=True, autoincrement=True)
     Tg_id: Mapped[int] = mapped_column(Integer)
-    Username: Mapped[str] = mapped_column(String(20), unique=True)
+    Username: Mapped[str] = mapped_column(String(35), unique=True)
     Fullname: Mapped[str] = mapped_column(String(30), nullable=False)
     Level: Mapped["Level"] = relationship(
         "Level", back_populates="User", cascade="all, delete-orphan"

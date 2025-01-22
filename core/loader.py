@@ -8,28 +8,26 @@ from contextlib import asynccontextmanager
 from core.config import logger
 from Data.database import engine,Base
 from Data.database import AsyncSessionLocal
-from aiogram import Router, F
-from aiogram.enums import ChatType
+from aiogram import Router
 from aiogram import Dispatcher
-from core.config import REDIS_DSN,MANIFEST_URL
+from core.config import MANIFEST_URL
 from aiogram import Bot, Dispatcher
-from aiogram.fsm.storage.redis import RedisStorage
 from tonutils.tonconnect import TonConnect
-from redis.asyncio import Redis
-from core.storage import TCRedisStorage
-
-
+import aiofiles
+import json,os
+from types import SimpleNamespace
+from core.storage import FileStorage
 # Your bot token
-redis = Redis.from_url(REDIS_DSN,)
+
 # List of wallets to exclude
 EXCLUDE_WALLETS = []
-tc_storage = TCRedisStorage(redis)
 
+storage = FileStorage('connection.json')
 bot = Bot(token=Token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
-dp = Dispatcher( bot=bot)
+dp = Dispatcher(bot=bot)
 
 wallet_router = Router()
-tc = TonConnect(storage=tc_storage, manifest_url=MANIFEST_URL)
+tc = TonConnect(storage=storage, manifest_url=MANIFEST_URL)
 command_router = Router()
 dp.include_router(wallet_router)
 dp.include_router(command_router)
@@ -58,9 +56,32 @@ async def lifespan(app:FastAPI):
     await bot.session.close()
 
 
-# Create Aiogram bot and dispatcher
 
 
+class AttributeDict(SimpleNamespace):
+    def __init__(self, data):
+        for key, value in data.items():
+            if isinstance(value, dict):
+                setattr(self, key, AttributeDict(value))
+            elif isinstance(value, list):
+                setattr(self, key, [AttributeDict(item) if isinstance(item, dict) else item for item in value])
+            else:
+                setattr(self, key, value)
 
-
-
+    def get(self, item, default=None):
+        return getattr(self, item, default)
+async def get_wallets():
+    async with aiofiles.open(os.path.join(os.path.dirname(__file__), 'wallets-v2.json'), 'r') as file:
+        data = json.loads(await file.read())
+        
+        wallets = []
+        for wallet in data:
+            if wallet.get("bridge") and len(wallet["bridge"]) > 0:
+                wallet["bridge_url"] = wallet["bridge"][0].get("url")
+            else:
+                wallet["bridge_url"] = None
+                
+            # Append the wallet as an AttributeDict object
+            wallets.append(AttributeDict(wallet))
+        
+        return wallets

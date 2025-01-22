@@ -5,12 +5,10 @@ from core.loader import (
     logger,
     command_router,
     tc,
-    dp,
     wallet_router
     )
 from Data.schemas import UserCreate
 from core.crud import create_user
-from core.loader import wallet_router
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from bot_handlers.windows import (connect_wallet_window,
@@ -35,7 +33,7 @@ async def help_handler(message: Message) -> None:
     
 
 
-@dp.message(CommandStart())
+@wallet_router.message(CommandStart())
 async def start_command(message: Message, state: FSMContext) -> None:
     user= UserCreate(Username=message.from_user.username,Tg_id=message.from_user.id,Fullname=message.from_user.full_name)
     await create_user(user=user)
@@ -53,7 +51,7 @@ async def start_command(message: Message, state: FSMContext) -> None:
         await wallet_connected_window(message.from_user.id)
 
 
-@dp.callback_query()
+@wallet_router.callback_query()
 async def callback_query_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
     connector = await tc.init_connector(callback_query.from_user.id)
     rpc_request_id = (await state.get_data()).get("rpc_request_id")
