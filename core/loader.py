@@ -91,6 +91,7 @@ async def get_wallets():
         
         wallets = []
         for wallet in data:
+            wallet["direct_url"] = wallet.get("universal_url", None)
             if wallet.get("bridge") and len(wallet["bridge"]) > 0:
                 wallet["bridge_url"] = wallet["bridge"][0].get("url")
             else:
