@@ -13,15 +13,16 @@ from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
 from bot_handlers.windows import (connect_wallet_window,
                                   wallet_connected_window,
-                                    send_transaction_window)
-
+                                    send_transaction_window,
+                                    main_menu_windows)
+from core.config import recipient_address
 from aiogram.fsm.context import FSMContext
 from tonutils.tonconnect.models import Event
 from tonutils.wallet.data import TransferData
 
 '''@command_router.message(CommandStart())
 async def command_start_handler(message: Message) -> None:
-    user= UserCreate(Username=message.from_user.username,Tg_id=message.from_user.id,Fullname=message.from_user.full_name)
+    user= UserCreate(username=message.from_user.username,tg_id=message.from_user.id,fullname=message.from_user.full_name)
     await create_user(user=user)
     await message.answer(f"Hello, {message.from_user.full_name}!\n{WELCOME_MESSAGE}")
     logger.info(f"User {message.from_user.full_name} started the bot.")'''
@@ -29,13 +30,13 @@ async def command_start_handler(message: Message) -> None:
 @command_router.message(Command("help"))
 async def help_handler(message: Message) -> None:
     """Help handler for all messages"""
-    await message.answer(Help_message)
+    await main_menu_windows(user_id=message.from_user.id)
     
 
 
 @wallet_router.message(CommandStart())
 async def start_command(message: Message, state: FSMContext) -> None:
-    user= UserCreate(Username=str(message.from_user.username),Tg_id=message.from_user.id,Fullname=message.from_user.full_name)
+    user= UserCreate(username=message.from_user.username,tg_id=message.from_user.id,fullname=message.from_user.full_name)
     await create_user(user=user)
     connector = await tc.init_connector(message.from_user.id)
     rpc_request_id = (await state.get_data()).get("rpc_request_id")
@@ -78,7 +79,7 @@ async def callback_query_handler(callback_query: CallbackQuery, state: FSMContex
 
     elif callback_query.data == "send_transaction":
         rpc_request_id = await connector.send_transfer(
-            destination=connector.account.address,
+            destination=recipient_address,
             amount=0.000000001,
             body="Hello from tonutils!",
         )
@@ -88,7 +89,7 @@ async def callback_query_handler(callback_query: CallbackQuery, state: FSMContex
     elif callback_query.data == "send_batch_transaction":
         transfer_data = [
             TransferData(
-                destination=connector.account.address,
+                destination=recipient_address,
                 amount=0.000000001,
                 body="Hello from tonutils!",
             ) for _ in range(4)
