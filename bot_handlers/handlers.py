@@ -3,9 +3,9 @@ from core.config import WELCOME_MESSAGE,Help_message
 from aiogram.filters import CommandStart,Command
 from core.loader import (
     logger,
-    command_router,
     tc,
-    wallet_router
+    router,
+    bot
     )
 from Data.schemas import UserCreate
 from core.crud import create_user
@@ -14,27 +14,30 @@ from aiogram.types import Message, CallbackQuery
 from bot_handlers.windows import (connect_wallet_window,
                                   wallet_connected_window,
                                     send_transaction_window,
+                                    timer,
                                     main_menu_windows)
 from core.config import recipient_address
 from aiogram.fsm.context import FSMContext
 from tonutils.tonconnect.models import Event
 from tonutils.wallet.data import TransferData
+import asyncio
 
-'''@command_router.message(CommandStart())
-async def command_start_handler(message: Message) -> None:
-    user= UserCreate(username=message.from_user.username,tg_id=message.from_user.id,fullname=message.from_user.full_name)
-    await create_user(user=user)
-    await message.answer(f"Hello, {message.from_user.full_name}!\n{WELCOME_MESSAGE}")
-    logger.info(f"User {message.from_user.full_name} started the bot.")'''
  
-@command_router.message(Command("help"))
+@router.message(Command("help"))
 async def help_handler(message: Message) -> None:
     """Help handler for all messages"""
     await main_menu_windows(user_id=message.from_user.id)
     
+@router.callback_query()
+async def call_back_handler(call_back_query:CallbackQuery,state: FSMContext):
+    if call_back_query.data =='mint':
+        await timer(call_back_query)
+    elif call_back_query.data =='upgrade':
+        await connect_wallet_window(state,call_back_query.message.chat.id)
+    await call_back_query.answer()
+    
 
-
-@wallet_router.message(CommandStart())
+@router.message(CommandStart())
 async def start_command(message: Message, state: FSMContext) -> None:
     user= UserCreate(username=message.from_user.username,tg_id=message.from_user.id,fullname=message.from_user.full_name)
     await create_user(user=user)
@@ -52,7 +55,7 @@ async def start_command(message: Message, state: FSMContext) -> None:
         await wallet_connected_window(message.from_user.id)
 
 
-@wallet_router.callback_query()
+@router.callback_query()
 async def callback_query_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
     connector = await tc.init_connector(callback_query.from_user.id)
     rpc_request_id = (await state.get_data()).get("rpc_request_id")
@@ -81,7 +84,7 @@ async def callback_query_handler(callback_query: CallbackQuery, state: FSMContex
         rpc_request_id = await connector.send_transfer(
             destination=recipient_address,
             amount=0.000000001,
-            body="Hello from tonutils!",
+            body="Peniguin NFT Upgrade",
         )
         await send_transaction_window(callback_query.from_user.id)
         await state.update_data(rpc_request_id=rpc_request_id)
@@ -91,7 +94,7 @@ async def callback_query_handler(callback_query: CallbackQuery, state: FSMContex
             TransferData(
                 destination=recipient_address,
                 amount=0.000000001,
-                body="Hello from tonutils!",
+                body="Peniguin NFT Upgrade",
             ) for _ in range(4)
         ]
         rpc_request_id = await connector.send_batch_transfer(transfer_data)
@@ -101,4 +104,5 @@ async def callback_query_handler(callback_query: CallbackQuery, state: FSMContex
     await callback_query.answer()
     
 
-    
+
+

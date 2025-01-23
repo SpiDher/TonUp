@@ -26,11 +26,10 @@ storage = FileStorage('connection.json')
 bot = Bot(token=Token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(bot=bot)
 
-wallet_router = Router()
+
 tc = TonConnect(storage=storage, manifest_url=MANIFEST_URL)
-command_router = Router()
-dp.include_router(wallet_router)
-dp.include_router(command_router)
+router = Router()
+dp.include_router(router)
 
 
 async def get_db():
@@ -93,6 +92,7 @@ async def get_wallets():
         wallets = []
         for wallet in data:
             wallet["direct_url"] = wallet.get("universal_url", None)
+            wallet["universal_url"] = wallet.get("universal_url", None)
             if wallet.get("bridge") and len(wallet["bridge"]) > 0:
                 wallet["bridge_url"] = wallet["bridge"][0].get("url")
             else:

@@ -11,6 +11,10 @@ from tonutils.tonconnect import TonConnect
 from tonutils.tonconnect.models import WalletApp, Event, EventError, SendTransactionResponse
 from tonutils.tonconnect.utils.exceptions import TonConnectError, UserRejectsError, RequestTimeoutError
 from core.loader import dp,bot,tc,logger
+from core.config import WELCOME_MESSAGE
+from aiogram.types import CallbackQuery
+import asyncio
+from core.loader import logger
 
 def main_menu_markup()->InlineKeyboardMarkup:
     mint= InlineKeyboardButton(text='Mint NFT',callback_data='mint')
@@ -39,8 +43,7 @@ async def delete_last_message(user_id: int, message_id: int,del_all:Optional[boo
     await state.update_data(last_message_id=message_id)
 
 async def main_menu_windows(user_id:int):
-    text= 'Welcome To Penguin NFT Upgrade Bot'
-    message = await bot.send_message(chat_id=user_id,text=text,reply_markup=main_menu_markup())
+    message = await bot.send_message(chat_id=user_id,text=WELCOME_MESSAGE,reply_markup=main_menu_markup())
     await delete_last_message(user_id, message.message_id,True)
 
 def _connect_wallet_markup(
@@ -78,8 +81,8 @@ def _confirm_transaction_markup(url: str, wallet_name: str) -> InlineKeyboardMar
 
 def _choose_action_markup() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text="Back", callback_data="back"))
     builder.row(InlineKeyboardButton(text="Send transaction", callback_data="send_transaction"))
-    builder.row(InlineKeyboardButton(text="Send batch transaction", callback_data="send_batch_transaction"))
     builder.row(InlineKeyboardButton(text="Disconnect wallet", callback_data="disconnect_wallet"))
 
     return builder.as_markup()
@@ -122,7 +125,7 @@ async def wallet_connected_window(user_id: int) -> None:
     wallet_address = connector.wallet.account.address.to_str(is_bounceable=False)
 
     reply_markup = _choose_action_markup()
-    text = f"Connected wallet:\n{hcode(wallet_address)}\n\nChoose an action:"
+    text = f"Connected wallet:\n{hcode(wallet_address)}\n\n Proceed to make the Transaction:"
 
     message = await bot.send_message(chat_id=user_id, text=text, reply_markup=reply_markup)
     await delete_last_message(user_id, message.message_id)
@@ -218,3 +221,41 @@ async def transaction_error_event(error: TonConnectError, user_id: int) -> None:
 
 
 
+active_timers = {}
+
+async def timer(call_back_query: CallbackQuery):
+    SAND_TIMER_FRAMES = ["⏳", "⌛"]
+
+    # Check if a timer is already running for this user
+    if call_back_query.message.chat.id in active_timers:
+        await call_back_query.message.answer("Please wait while we mint your NFT")
+        return
+
+    # Send initial message
+    sent_message = await call_back_query.message.answer("⏳ Minting....")
+    active_timers[call_back_query.message.chat.id] = True
+    logger.info(active_timers)# Mark timer as active
+
+    try:
+        i = 0
+        while active_timers.get(call_back_query.message.chat.id):
+            # Cycle through the sand timer frames
+            frame = SAND_TIMER_FRAMES[i % len(SAND_TIMER_FRAMES)]
+            i += 1
+            await asyncio.sleep(1)  # Delay for animation effect
+            await bot.edit_message_text(
+                chat_id=call_back_query.message.chat.id,
+                message_id=sent_message.message_id,
+                text=frame
+            )
+
+        # Optional: Send a message when the timer stops
+        await bot.send_message(
+            chat_id=call_back_query.message.chat.id,
+            text="Timer stopped! ⏹️"
+        )
+    except Exception as e:
+        print(f"Error in sand timer: {e}")
+    finally:
+        # Clean up active timer state
+        active_timers.pop(call_back_query.message.chat.id, None)
