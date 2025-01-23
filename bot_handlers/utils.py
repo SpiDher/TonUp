@@ -4,11 +4,13 @@ from bot_handlers.windows import (connect_wallet_window,
                                   main_menu_windows,
                                   timer,
                                   wallet_connected_window,
-                                  send_transaction_window,)
+                                  send_transaction_window,
+                                  timer)
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from tonutils.tonconnect.models import Event
 from tonutils.wallet.data import TransferData
+from core.crud import get_user_by_id
 
 
 async def run_connection(state:FSMContext,user_id:int):
@@ -31,9 +33,16 @@ async def callback_checks(callback_query:CallbackQuery,state:FSMContext):
     if callback_query.data =='mint':
         await timer(callback_query)
     elif callback_query.data =='upgrade':
-        await run_connection(state,callback_query.from_user.id)
+        admin_status = get_user_by_id(callback_query.from_user.id)
+        if not admin_status:
+            #TODO - Just upgrade the NFT level of the user
+            await timer(callback_query)
+        else:
+            await run_connection(state,callback_query.from_user.id)
+            
     elif callback_query.data == "back":
         await main_menu_windows(callback_query.from_user.id)
+        
     elif callback_query.data.startswith("app_wallet:"):
         selected_wallet = callback_query.data.split(":")[1]
         await state.update_data(selected_wallet=selected_wallet)

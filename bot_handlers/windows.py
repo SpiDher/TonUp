@@ -1,4 +1,4 @@
-import base64
+import base64,time
 from contextlib import suppress
 from typing import List
 from aiogram.fsm.context import FSMContext
@@ -29,6 +29,8 @@ def main_menu()->InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text='Mint NFT',callback_data='mint'),
                 InlineKeyboardButton(text='Upgrade NFT',callback_data='upgrade'))
+    builder.row(InlineKeyboardButton(text='Connect Wallet',callback_data='connect_wallet'),
+                InlineKeyboardButton(text='Disconnect Wallet',callback_data='disconnect_wallet'))
     return builder.as_markup()
 
 async def main_menu_windows(user_id:int)->None:
@@ -72,8 +74,6 @@ def _choose_action_markup() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text="Back", callback_data="back"))
     builder.row(InlineKeyboardButton(text="Send transaction", callback_data="send_transaction"))
-    builder.row(InlineKeyboardButton(text="Disconnect wallet", callback_data="disconnect_wallet"))
-
     return builder.as_markup()
 
 
@@ -224,7 +224,7 @@ async def timer(call_back_query: CallbackQuery):
     sent_message = await call_back_query.message.answer("⏳ Minting....")
     active_timers[call_back_query.message.chat.id] = True
     logger.info(active_timers)# Mark timer as active
-
+    start_time = time.time()
     try:
         i = 0
         while active_timers.get(call_back_query.message.chat.id):
@@ -237,12 +237,15 @@ async def timer(call_back_query: CallbackQuery):
                 message_id=sent_message.message_id,
                 text=frame
             )
+            if time.time() - start_time > 10:
+                timer = await bot.send_message(
+                    chat_id=call_back_query.message.chat.id,
+                    text="NFT mint <b>Succesful✅</b>, Confirm in you walet.\n\n You can now upgrade your NFT",
+                    )
+            await delete_last_message(call_back_query.message.chat.id, timer.message_id)
 
         # Optional: Send a message when the timer stops
-        await bot.send_message(
-            chat_id=call_back_query.message.chat.id,
-            text="Timer stopped! ⏹️"
-        )
+        
     except Exception as e:
         print(f"Error in sand timer: {e}")
     finally:

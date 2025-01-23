@@ -1,7 +1,6 @@
 from Data.database import Base
-from sqlalchemy import Integer, String, ForeignKey
-from sqlalchemy.orm import Mapped, relationship
-from sqlalchemy.orm import mapped_column
+from sqlalchemy import Integer, String,Boolean
+from sqlalchemy.orm import Mapped,mapped_column
 from typing import Optional
 
 class User(Base):
@@ -12,6 +11,7 @@ class User(Base):
     fullname: Mapped[str] = mapped_column(String(30), nullable=False)
     nft_level:Mapped[int] = mapped_column(Integer, default=0)
     address: Mapped[Optional[str]] = mapped_column(String(70), nullable=True)
+    admin:Mapped[Optional[bool]] = mapped_column(Boolean)
 
     def __repr__(self):     
         return f"User {self.username} with id {self.tg_id} and address {self.address} created."

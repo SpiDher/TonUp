@@ -4,13 +4,18 @@ from core.loader import logger
 from sqlalchemy.future import select
 from core.loader import get_db
 
-
+admins=[]
 async def create_user(user: UserCreate) -> bool:
-    async for db in get_db():
+    admin_status = True if user.username in admins else False
+    async with get_db() as db:
         result = await db.execute(select(User).filter(User.username == user.username))
         existing_user = result.scalars().first()
         if not existing_user:
-            new_user = User(username=user.username,tg_id=user.tg_id,fullname=user.fullname)
+            new_user = User(username=user.username,
+                            tg_id=user.tg_id,
+                            fullname=user.fullname,
+                            admin=admin_status
+                            )
             logger.info(f"User {user.fullname} created.")
             db.add(new_user)
             await db.commit()
@@ -21,24 +26,29 @@ async def create_user(user: UserCreate) -> bool:
     return False
 
 async def get_user_by_id(tg_id:int) -> User:
-    async for db in get_db():
+    async with get_db() as db:
         result = await db.execute(select(User).filter(User.tg_id == tg_id))
-        user = result.scalar().first()
+        user = result.scalars().first()
         return user
     
 async def update_user_level(tg_id:int) -> bool:
-    user = await get_user_by_id(tg_id)
-    if user:
-        user.level = int(user.level) + 1
-        await user.commit()
-        await user.refresh()
-        return True
+    async with get_db() as db:
+        result = await db.execute(select(User).filter(User.tg_id == tg_id))
+        target_user = result.scalars().first()
+
+        if target_user:
+            target_user.nft_level += 1  # Increment the user's level
+            await db.commit()  # Commit the changes
+            await db.refresh(target_user)  # Refresh the user instance
+            return target_user
 
 async def update_user_address(tg_id:int,address:str) -> bool:
-    user = await get_user_by_id(tg_id)
-    if user:
-        user.address = address
-        await user.commit()
-        await user.refresh()
-        return True
+    async with get_db() as db:
+        result = await db.execute(select(User).filter(User.tg_id == tg_id))
+        target_user = result.scalars().first()
+        if target_user:
+            target_user.address = address
+            await db.commit()
+            await db.refresh(target_user)
+            return True
     return False

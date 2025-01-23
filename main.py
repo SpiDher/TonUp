@@ -32,13 +32,13 @@ async def handle_webhook(request: Request) -> dict:
 async def root(request: UserCreate, db: AsyncSession = Depends(get_db)) -> UserShow:
     """Health check endpoint"""
     # Query to check if the user already exists
-    result = await db.execute(select(User).filter(User.Username == request.Username))
+    result = await db.execute(select(User).filter(User.username == request.username))
     existing_user = result.scalars().first()
 
     if not existing_user:
         # Create a new user
-        new_user = User(username=request.Username, id=request.Tg_id, fullname=request.Fullname)
-        logger.info(f"User {request.Fullname} created.")
+        new_user = User(username=request.username, id=request.tg_id, fullname=request.fullname)
+        logger.info(f"User {request.fullname} created.")
         db.add(new_user)
         await db.commit()
         await db.refresh(new_user)

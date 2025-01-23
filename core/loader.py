@@ -13,9 +13,6 @@ from aiogram import Dispatcher
 from core.config import MANIFEST_URL
 from aiogram import Bot, Dispatcher
 from tonutils.tonconnect import TonConnect
-import aiofiles
-import json,os
-from types import SimpleNamespace
 from core.storage import FileStorage
 # Your bot token
 
@@ -33,15 +30,15 @@ dp.include_router(router)
 dp.include_router(router2)
 
 
-
+@asynccontextmanager
 async def get_db():
     db = AsyncSessionLocal()
     try: 
         yield db
     except Exception:
         await db.rollback()
+        raise
     finally:
-        await db.commit()
         await db.close()
 
 #Initializing the bot and dispatcher
