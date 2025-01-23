@@ -17,7 +17,7 @@ This is the official Penguin NFT Bot, Kidly connect your Ton wallet Below to get
 Help_message='''
 This is the official <b>Penguin NFT Bot</b>, Kindly connect your Ton wallet Below to get started.\n Choose any of the available options below to get started: \n run /start to see the options available to you  '''
 
+recipient_address= os.getenv('WALLET_ADDRESS')
 REDIS_DSN = os.getenv('REDIS_DSN')
 EXCLUDE_WALLETS = ["mytonwallet"]
 MANIFEST_URL = os.getenv('MANIFEST_URL')
-recipient_address= os.getenv('WALLET_ADDRESS')

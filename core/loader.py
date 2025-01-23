@@ -36,9 +36,8 @@ async def get_db():
     db = AsyncSessionLocal()
     try: 
         yield db
-    except Exception as e:
+    except Exception:
         await db.rollback()
-        raise e
     finally:
         await db.commit()
         await db.close()

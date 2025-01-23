@@ -15,14 +15,12 @@ from bot_handlers.windows import (connect_wallet_window,
                                   wallet_connected_window,
                                     send_transaction_window,
                                     timer,
-                                    main_menu_windows,
                                     delete_last_message)
 from core.config import recipient_address
 from aiogram.fsm.context import FSMContext
 from tonutils.tonconnect.models import Event
 from tonutils.wallet.data import TransferData
 from bot_handlers.utils import run_connection
-
  
 @router.message(Command("help"))
 async def help_handler(message: Message) -> None:
@@ -30,10 +28,14 @@ async def help_handler(message: Message) -> None:
     current_message =await bot.send_message(chat_id=message.from_user.id,text=Help_message)
     #TODO - Check on the user_Id below and modify where neccesary
     await delete_last_message(message.from_user.id, current_message.message_id)
+
+
     
 
 @router.message(CommandStart())
 async def start_command(message: Message, state: FSMContext) -> None:
+    user= UserCreate(Username=str(message.from_user.username),Tg_id=message.from_user.id,Fullname=message.from_user.full_name)
+    await create_user(user=user)
     connector = await tc.init_connector(message.from_user.id)
     rpc_request_id = (await state.get_data()).get("rpc_request_id")
     if connector.is_transaction_pending(rpc_request_id):
@@ -90,7 +92,7 @@ async def callback_query_handler(callback_query: CallbackQuery, state: FSMContex
 
     elif callback_query.data == "send_transaction":
         rpc_request_id = await connector.send_transfer(
-            destination=recipient_address,
+            destination=connector.account.address,
             amount=0.000000001,
             body="Peniguin NFT Upgrade",
         )
@@ -100,7 +102,7 @@ async def callback_query_handler(callback_query: CallbackQuery, state: FSMContex
     elif callback_query.data == "send_batch_transaction":
         transfer_data = [
             TransferData(
-                destination=recipient_address,
+                destination=connector.account.address,
                 amount=0.000000001,
                 body="Peniguin NFT Upgrade",
             ) for _ in range(4)

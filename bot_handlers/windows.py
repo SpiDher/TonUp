@@ -6,7 +6,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.markdown import hide_link, hcode
-from typing import Optional
+
 from tonutils.tonconnect import TonConnect
 from tonutils.tonconnect.models import WalletApp, Event, EventError, SendTransactionResponse
 from tonutils.tonconnect.utils.exceptions import TonConnectError, UserRejectsError, RequestTimeoutError
@@ -16,35 +16,15 @@ from aiogram.types import CallbackQuery
 import asyncio
 from core.loader import logger
 
-def main_menu_markup()->InlineKeyboardMarkup:
-    mint= InlineKeyboardButton(text='Mint NFT',callback_data='mint')
-    upgrade = InlineKeyboardButton(text='Upgrade NFT',callback_data='upgrade')
-    builder= InlineKeyboardBuilder()
-    builder.row(mint,upgrade)
-    return builder.as_markup()
-    
-
-async def delete_last_message(user_id: int, message_id: int,del_all:Optional[bool]=False) -> None:
+async def delete_last_message(user_id: int, message_id: int) -> None:
     state = dp.fsm.resolve_context(bot, user_id, user_id)
-    state_data = await state.get_data()
     last_message_id = (await state.get_data()).get("last_message_id")
 
     if last_message_id is not None:
         with suppress(Exception):
             await bot.delete_message(chat_id=user_id, message_id=last_message_id)
-    '''if del_all:
-        message_ids = state_data.get("message_ids", [])
-        for msg_id in message_ids:
-            if msg_id != message_id:
-                with suppress(Exception):
-                    await bot.delete_message(chat_id=user_id, message_id=msg_id)
-        await state.update_data(message_ids=[])'''
-        
-    await state.update_data(last_message_id=message_id)
 
-async def main_menu_windows(user_id:int):
-    message = await bot.send_message(chat_id=user_id,text=WELCOME_MESSAGE,reply_markup=main_menu_markup())
-    await delete_last_message(user_id, message.message_id)
+    await state.update_data(last_message_id=message_id)
 
 def _connect_wallet_markup(
         wallets: List[WalletApp],
