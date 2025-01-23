@@ -12,7 +12,7 @@ WEBHOOK_PATH = "/webhook"
 BASE_WEBHOOK_URL = os.getenv('WEBHOOK_URL')
 WEB_HOOK =f"{BASE_WEBHOOK_URL}{WEBHOOK_PATH}"
 WELCOME_MESSAGE='''
-This is the official Penguin NFT Bot, Kidly connect your Ton wallet Below to get started'''
+This is the <b>Official Penguin NFT Bot</b>, Kindly click any button below,<b>Mint</> for the first time,\n <b>Upgrade</b> to increase NFT level'''
 
 Help_message='''
 This is the official <b>Penguin NFT Bot</b>, Kindly connect your Ton wallet Below to get started.\n Choose any of the available options below to get started: \n run /start to see the options available to you  '''

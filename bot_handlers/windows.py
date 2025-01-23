@@ -1,12 +1,11 @@
 import base64
 from contextlib import suppress
 from typing import List
-from core.loader import get_wallets
 from aiogram.fsm.context import FSMContext
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from aiogram.utils.markdown import hide_link, hcode
-
+from core.crud import update_user_address
 from tonutils.tonconnect import TonConnect
 from tonutils.tonconnect.models import WalletApp, Event, EventError, SendTransactionResponse
 from tonutils.tonconnect.utils.exceptions import TonConnectError, UserRejectsError, RequestTimeoutError
@@ -25,11 +24,17 @@ async def delete_last_message(user_id: int, message_id: int) -> None:
             await bot.delete_message(chat_id=user_id, message_id=last_message_id)
 
     await state.update_data(last_message_id=message_id)
-def main_menu(user_id:int):
+    
+def main_menu()->InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text='Mint NFT',callback_data='mint'),
                 InlineKeyboardButton(text='Upgrade NFT',callback_data='upgrade'))
     return builder.as_markup()
+
+async def main_menu_windows(user_id:int)->None:
+    message = await bot.send_message(chat_id=user_id,text=WELCOME_MESSAGE,reply_markup=main_menu())
+    await delete_last_message(user_id,message.message_id)
+
 def _connect_wallet_markup(
         wallets: List[WalletApp],
         selected_wallet: WalletApp,
@@ -83,7 +88,7 @@ async def connect_wallet_window(state: FSMContext, user_id: int) -> None:
     try:
         connector = await tc.init_connector(user_id)
         state_data = await state.get_data()
-        wallets = await get_wallets()
+        wallets = await tc.get_wallets()
 
         selected_wallet = state_data.get("selected_wallet", wallets[0].app_name)
         selected_wallet = next(w for w in wallets if w.app_name == selected_wallet)
@@ -107,9 +112,9 @@ async def connect_wallet_window(state: FSMContext, user_id: int) -> None:
 async def wallet_connected_window(user_id: int) -> None:
     connector = await tc.init_connector(user_id)
     wallet_address = connector.wallet.account.address.to_str(is_bounceable=False)
-
+    await update_user_address(user_id,wallet_address)
     reply_markup = _choose_action_markup()
-    text = f"Connected wallet:\n{hcode(wallet_address)}\n\n Proceed to make the Transaction:"
+    text = f"Connected wallet:\n{hcode(wallet_address)}\n\n Proceed to make the Transaction"
 
     message = await bot.send_message(chat_id=user_id, text=text, reply_markup=reply_markup)
     await delete_last_message(user_id, message.message_id)

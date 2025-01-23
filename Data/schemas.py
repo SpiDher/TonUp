@@ -1,9 +1,9 @@
 from pydantic import BaseModel
 
 class UserCreate(BaseModel):
-    Tg_id : int
-    Username : str
-    Fullname: str
+    tg_id : int
+    username : str
+    fullname: str
 
 class UserShow(UserCreate):
     class Config:

@@ -6,6 +6,7 @@ from core.loader import (
     tc,
     router,
     logger,
+    router2,
     bot
     )
 from Data.schemas import UserCreate
@@ -15,6 +16,7 @@ from aiogram.types import Message, CallbackQuery
 from bot_handlers.windows import (connect_wallet_window,
                                   wallet_connected_window,
                                     send_transaction_window,
+                                    main_menu_windows,
                                     timer,
                                     delete_last_message)
 from core.config import recipient_address
@@ -22,9 +24,7 @@ from aiogram.fsm.context import FSMContext
 from tonutils.tonconnect.models import Event
 from tonutils.wallet.data import TransferData
 
-from bot_handlers.utils import run_connection
-
-import asyncio
+from bot_handlers.utils import run_connection,callback_checks
  
 @router.message(Command("help"))
 async def help_handler(message: Message) -> None:
@@ -34,68 +34,23 @@ async def help_handler(message: Message) -> None:
     await delete_last_message(message.from_user.id, current_message.message_id)
 
 
-    
-
-
-@router.message(CommandStart())
-async def start_command(message: Message, state: FSMContext) -> None:
-    user= UserCreate(Username=str(message.from_user.username),Tg_id=message.from_user.id,Fullname=message.from_user.full_name)
-    await create_user(user=user)
-    connector = await tc.init_connector(message.from_user.id)
-    rpc_request_id = (await state.get_data()).get("rpc_request_id")
-    if connector.is_transaction_pending(rpc_request_id):
-        connector.cancel_pending_transaction(rpc_request_id)
-
-    if not connector.connected:
-        await connect_wallet_window(state, message.from_user.id)
-    else:
-        await wallet_connected_window(message.from_user.id)
-
-
-@router.callback_query()
-async def call_back_handler(call_back_query:CallbackQuery,state: FSMContext):
-    if call_back_query.data =='mint':
-        await timer(call_back_query)
-    elif call_back_query.data =='upgrade':
-        connector = await tc.init_connector(call_back_query.from_user.id)
-        rpc_request_id = (await state.get_data()).get("rpc_request_id")
-        try:
-            if connector.is_transaction_pending(rpc_request_id):
-                connector.cancel_pending_transaction(rpc_request_id)
-        except Exception as e:
-            logger.error(f'Error: {e}')
-
-        if not connector.connected:
-            await connect_wallet_window(state, call_back_query.from_user.id)
-        else:
-            await wallet_connected_window(call_back_query.from_user.id)
-    await call_back_query.answer()
-    
 
 @router.message(CommandStart())
 async def start_command(message: Message, state: FSMContext) -> None:
     user= UserCreate(username=message.from_user.username,tg_id=message.from_user.id,fullname=message.from_user.full_name)
     await create_user(user=user)
-    connector = await tc.init_connector(message.from_user.id)
-    rpc_request_id = (await state.get_data()).get("rpc_request_id")
-    try:
-        if connector.is_transaction_pending(rpc_request_id):
-            connector.cancel_pending_transaction(rpc_request_id)
-    except Exception as e:
-        logger.error(f'Error: {e}')
-
-    if not connector.connected:
-        await connect_wallet_window(state, message.from_user.id)
-    else:
-        await wallet_connected_window(message.from_user.id)
-
+    await main_menu_windows(message.from_user.id)
 
 @router.callback_query()
 async def callback_query_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
-    connector = await tc.init_connector(callback_query.from_user.id)
-    rpc_request_id = (await state.get_data()).get("rpc_request_id")
-
-    if callback_query.data.startswith("app_wallet:"):
+    await callback_checks(callback_query,state)
+    '''if callback_query.data =='mint':
+        await timer(callback_query)
+    elif callback_query.data =='upgrade':
+        await run_connection(state,callback_query.from_user.id)
+    elif callback_query.data == "back":
+        await main_menu_windows(callback_query.from_user.id)
+    elif callback_query.data.startswith("app_wallet:"):
         selected_wallet = callback_query.data.split(":")[1]
         await state.update_data(selected_wallet=selected_wallet)
         await connect_wallet_window(state, callback_query.from_user.id)
@@ -134,7 +89,7 @@ async def callback_query_handler(callback_query: CallbackQuery, state: FSMContex
         ]
         rpc_request_id = await connector.send_batch_transfer(transfer_data)
         await send_transaction_window(callback_query.from_user.id)
-        await state.update_data(rpc_request_id=rpc_request_id)
+        await state.update_data(rpc_request_id=rpc_request_id)'''
 
     await callback_query.answer()
     

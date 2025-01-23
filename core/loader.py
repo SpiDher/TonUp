@@ -25,11 +25,13 @@ EXCLUDE_WALLETS = []
 storage = FileStorage('connection.json')
 bot = Bot(token=Token, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher(bot=bot)
-
-
+router2 = Router()
+# Initializing the TonConnect instance
 tc = TonConnect(storage=storage, manifest_url=MANIFEST_URL)
 router = Router()
 dp.include_router(router)
+dp.include_router(router2)
+
 
 
 async def get_db():
@@ -50,54 +52,9 @@ async def lifespan(app:FastAPI):
         logger.info('Models Migrated')
     await bot.set_webhook(WEB_HOOK)
     logger.info("Webhook has been set.")
-
     yield
     await bot.session.close()
 
 
 
 
-class AttributeDict(SimpleNamespace):
-    def __init__(self, data):
-        for key, value in data.items():
-            if isinstance(value, dict):
-                setattr(self, key, AttributeDict(value))
-            elif isinstance(value, list):
-                setattr(self, key, [AttributeDict(item) if isinstance(item, dict) else item for item in value])
-            else:
-                setattr(self, key, value)
-
-    def get(self, item, default=None):
-        return getattr(self, item, default)
-    
-    def to_dict(self):
-        result = {}
-        for key, value in self.__dict__.items():
-            if isinstance(value, AttributeDict):
-                result[key] = value.to_dict()
-            elif isinstance(value, list):
-                result[key] = [
-                    item.to_dict() if isinstance(item, AttributeDict) else item for item in value
-                ]
-            else:
-                result[key] = value
-        return result
-
-
-async def get_wallets():
-    async with aiofiles.open(os.path.join(os.path.dirname(__file__), 'wallets-v2.json'), 'r') as file:
-        data = json.loads(await file.read())
-        
-        wallets = []
-        for wallet in data:
-            wallet["direct_url"] = wallet.get("universal_url", None)
-            wallet["universal_url"] = wallet.get("universal_url", None)
-            if wallet.get("bridge") and len(wallet["bridge"]) > 0:
-                wallet["bridge_url"] = wallet["bridge"][0].get("url")
-            else:
-                wallet["bridge_url"] = None
-                
-            # Append the wallet as an AttributeDict object
-            wallets.append(AttributeDict(wallet))
-        
-        return wallets
