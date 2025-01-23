@@ -34,9 +34,15 @@ async def help_handler(message: Message) -> None:
 
 @router.message(CommandStart())
 async def start_command(message: Message, state: FSMContext) -> None:
-    user= UserCreate(username=message.from_user.username,tg_id=message.from_user.id,fullname=message.from_user.full_name)
-    await create_user(user=user)
-    await main_menu_windows(user_id=message.from_user.id)
+    connector = await tc.init_connector(message.from_user.id)
+    rpc_request_id = (await state.get_data()).get("rpc_request_id")
+    if connector.is_transaction_pending(rpc_request_id):
+        connector.cancel_pending_transaction(rpc_request_id)
+
+    if not connector.connected:
+        await connect_wallet_window(state, message.from_user.id)
+    else:
+        await wallet_connected_window(message.from_user.id)
 
 @router.callback_query()
 async def call_back_handler(call_back_query:CallbackQuery,state: FSMContext):

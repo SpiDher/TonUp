@@ -32,19 +32,19 @@ async def delete_last_message(user_id: int, message_id: int,del_all:Optional[boo
     if last_message_id is not None:
         with suppress(Exception):
             await bot.delete_message(chat_id=user_id, message_id=last_message_id)
-    if del_all:
+    '''if del_all:
         message_ids = state_data.get("message_ids", [])
         for msg_id in message_ids:
             if msg_id != message_id:
                 with suppress(Exception):
                     await bot.delete_message(chat_id=user_id, message_id=msg_id)
-        await state.update_data(message_ids=[])
+        await state.update_data(message_ids=[])'''
         
     await state.update_data(last_message_id=message_id)
 
 async def main_menu_windows(user_id:int):
     message = await bot.send_message(chat_id=user_id,text=WELCOME_MESSAGE,reply_markup=main_menu_markup())
-    await delete_last_message(user_id, message.message_id,True)
+    await delete_last_message(user_id, message.message_id)
 
 def _connect_wallet_markup(
         wallets: List[WalletApp],
