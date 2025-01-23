@@ -2,7 +2,7 @@ from aiogram.types import Message
 from core.config import WELCOME_MESSAGE,Help_message
 from aiogram.filters import CommandStart,Command
 from core.loader import (
-    logger,
+    bot,
     tc,
     router
     )
@@ -14,7 +14,8 @@ from bot_handlers.windows import (connect_wallet_window,
                                   wallet_connected_window,
                                     send_transaction_window,
                                     timer,
-                                    main_menu_windows)
+                                    main_menu_windows,
+                                    delete_last_message)
 from core.config import recipient_address
 from aiogram.fsm.context import FSMContext
 from tonutils.tonconnect.models import Event
@@ -25,7 +26,9 @@ from bot_handlers.utils import run_connection
 @router.message(Command("help"))
 async def help_handler(message: Message) -> None:
     """Help handler for all messages"""
-    await main_menu_windows(user_id=message.from_user.id)
+    message =await bot.send_message(chat_id=message.from_user.id,text=Help_message)
+    #TODO - Check on the user_Id below and modify where neccesary
+    await delete_last_message(message.from_user.id, message.message_id)
     
 
 @router.message(CommandStart())
