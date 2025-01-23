@@ -2,7 +2,7 @@ from core.loader import tc
 from core.loader import logger
 from bot_handlers.windows import connect_wallet_window,wallet_connected_window
 from aiogram.fsm.context import FSMContext
-async def run_connection(state:FSMContext,user_id):
+async def run_connection(state:FSMContext,user_id:int):
     connector = await tc.init_connector(user_id)
     rpc_request_id = (await state.get_data()).get("rpc_request_id")
     try:
