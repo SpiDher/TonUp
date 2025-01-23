@@ -4,8 +4,7 @@ from aiogram.filters import CommandStart,Command
 from core.loader import (
     logger,
     tc,
-    router,
-    bot
+    router
     )
 from Data.schemas import UserCreate
 from core.crud import create_user
@@ -20,7 +19,7 @@ from core.config import recipient_address
 from aiogram.fsm.context import FSMContext
 from tonutils.tonconnect.models import Event
 from tonutils.wallet.data import TransferData
-import asyncio
+from bot_handlers.utils import run_connection
 
  
 @router.message(Command("help"))
@@ -28,32 +27,20 @@ async def help_handler(message: Message) -> None:
     """Help handler for all messages"""
     await main_menu_windows(user_id=message.from_user.id)
     
-@router.callback_query()
-async def call_back_handler(call_back_query:CallbackQuery,state: FSMContext):
-    if call_back_query.data =='mint':
-        await timer(call_back_query)
-    elif call_back_query.data =='upgrade':
-        await connect_wallet_window(state,call_back_query.message.chat.id)
-    await call_back_query.answer()
-    
 
 @router.message(CommandStart())
 async def start_command(message: Message, state: FSMContext) -> None:
     user= UserCreate(username=message.from_user.username,tg_id=message.from_user.id,fullname=message.from_user.full_name)
     await create_user(user=user)
-    connector = await tc.init_connector(message.from_user.id)
-    rpc_request_id = (await state.get_data()).get("rpc_request_id")
-    try:
-        if connector.is_transaction_pending(rpc_request_id):
-            connector.cancel_pending_transaction(rpc_request_id)
-    except Exception as e:
-        logger.error(f'Error: {e}')
+    await main_menu_windows(user_id=message.from_user.id)
 
-    if not connector.connected:
-        await connect_wallet_window(state, message.from_user.id)
-    else:
-        await wallet_connected_window(message.from_user.id)
-
+@router.callback_query()
+async def call_back_handler(call_back_query:CallbackQuery,state: FSMContext):
+    if call_back_query.data =='mint':
+        await timer(call_back_query)
+    elif call_back_query.data =='upgrade':
+        await run_connection(state,call_back_query.message.chat.id)
+    await call_back_query.answer()
 
 @router.callback_query()
 async def callback_query_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
