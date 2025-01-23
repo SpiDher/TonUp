@@ -25,7 +25,11 @@ async def delete_last_message(user_id: int, message_id: int) -> None:
             await bot.delete_message(chat_id=user_id, message_id=last_message_id)
 
     await state.update_data(last_message_id=message_id)
-
+def main_menu(user_id:int):
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text='Mint NFT',callback_data='mint'),
+                InlineKeyboardButton(text='Upgrade NFT',callback_data='upgrade'))
+    return builder.as_markup()
 def _connect_wallet_markup(
         wallets: List[WalletApp],
         selected_wallet: WalletApp,

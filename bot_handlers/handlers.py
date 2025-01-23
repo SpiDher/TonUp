@@ -117,7 +117,7 @@ async def callback_query_handler(callback_query: CallbackQuery, state: FSMContex
 
     elif callback_query.data == "send_transaction":
         rpc_request_id = await connector.send_transfer(
-            destination=connector.account.address,
+            destination=recipient_address,
             amount=0.000000001,
             body="Peniguin NFT Upgrade",
         )
@@ -127,7 +127,7 @@ async def callback_query_handler(callback_query: CallbackQuery, state: FSMContex
     elif callback_query.data == "send_batch_transaction":
         transfer_data = [
             TransferData(
-                destination=connector.account.address,
+                destination=recipient_address,
                 amount=0.000000001,
                 body="Peniguin NFT Upgrade",
             ) for _ in range(4)
