@@ -26,9 +26,9 @@ from bot_handlers.utils import run_connection
 @router.message(Command("help"))
 async def help_handler(message: Message) -> None:
     """Help handler for all messages"""
-    message =await bot.send_message(chat_id=message.from_user.id,text=Help_message)
+    current_message =await bot.send_message(chat_id=message.from_user.id,text=Help_message)
     #TODO - Check on the user_Id below and modify where neccesary
-    await delete_last_message(message.from_user.id, message.message_id)
+    await delete_last_message(message.from_user.id, current_message.message_id)
     
 
 @router.message(CommandStart())
