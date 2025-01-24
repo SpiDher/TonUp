@@ -148,7 +148,8 @@ async def transaction_sent_window(user_id: int, transaction: SendTransactionResp
 
 async def error_window(user_id: int, message_text: str, button_text: str, callback_data: str) -> None:
     builder = InlineKeyboardBuilder()
-    builder.row(InlineKeyboardButton(text=button_text, callback_data=callback_data))
+    builder.row(InlineKeyboardButton(text=button_text, callback_data=callback_data),
+                InlineKeyboardButton(text='Back To Menu',callback_data='back'))
     reply_markup = builder.as_markup()
 
     message = await bot.send_message(chat_id=user_id, text=message_text, reply_markup=reply_markup)
