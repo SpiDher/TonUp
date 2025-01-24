@@ -13,23 +13,22 @@ from Data.schemas import UserCreate
 from core.crud import create_user
 from aiogram.filters import Command
 from aiogram.types import Message, CallbackQuery
-from bot_handlers.windows import (connect_wallet_window,
-                                  wallet_connected_window,
-                                    send_transaction_window,
-                                    main_menu_windows,
-                                    timer,
-                                    delete_last_message)
+from bot_handlers.windows import (main_menu_windows,
+                                  main_menu,
+                                  delete_last_message)
 from core.config import recipient_address
 from aiogram.fsm.context import FSMContext
 from tonutils.tonconnect.models import Event
 from tonutils.wallet.data import TransferData
 
-from bot_handlers.utils import run_connection,callback_checks
+from bot_handlers.utils import callback_checks
  
 @router.message(Command("help"))
 async def help_handler(message: Message) -> None:
     """Help handler for all messages"""
-    current_message =await bot.send_message(chat_id=message.from_user.id,text=Help_message)
+    current_message =await bot.send_message(chat_id=message.from_user.id,
+                                            text=Help_message,
+                                            reply_markup=main_menu())
     #TODO - Check on the user_Id below and modify where neccesary
     await delete_last_message(message.from_user.id, current_message.message_id)
 

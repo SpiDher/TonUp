@@ -21,3 +21,7 @@ recipient_address= os.getenv('WALLET_ADDRESS')
 REDIS_DSN = os.getenv('REDIS_DSN')
 EXCLUDE_WALLETS = ["mytonwallet"]
 MANIFEST_URL = os.getenv('MANIFEST_URL')
+
+upgrade_costs ={
+    
+}

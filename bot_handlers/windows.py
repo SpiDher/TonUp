@@ -243,6 +243,7 @@ async def timer(call_back_query: CallbackQuery):
         success_msg = await bot.send_message(
             chat_id=call_back_query.message.chat.id,
             text="NFT mint <b>Succesful✅</b>, Confirm in you walet.\n\n You can now upgrade your NFT",
+            reply_markup= main_menu()
             )
         await delete_last_message(sent_message.message_id,success_msg.message_id)
 
