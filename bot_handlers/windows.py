@@ -228,7 +228,7 @@ async def timer(call_back_query: CallbackQuery):
     start_time = time.time()
     try:
         i = 0
-        while active_timers.get(call_back_query.message.chat.id):
+        while time.time() - start_time <= 5:
             # Cycle through the sand timer frames
             frame = SAND_TIMER_FRAMES[i % len(SAND_TIMER_FRAMES)]
             i += 1
@@ -238,17 +238,16 @@ async def timer(call_back_query: CallbackQuery):
                 message_id=sent_message.message_id,
                 text=frame
             )
-            if time.time() - start_time > 10:
-                timer = await bot.send_message(
-                    chat_id=call_back_query.message.chat.id,
-                    text="NFT mint <b>Succesful✅</b>, Confirm in you walet.\n\n You can now upgrade your NFT",
-                    )
-            await delete_last_message(call_back_query.message.chat.id, timer.message_id)
+            
+        success_msg = await bot.send_message(
+            chat_id=call_back_query.message.chat.id,
+            text="NFT mint <b>Succesful✅</b>, Confirm in you walet.\n\n You can now upgrade your NFT",
+            )
+        await delete_last_message(sent_message.message_id,success_msg.message_id)
 
-        # Optional: Send a message when the timer stops
-        
     except Exception as e:
         print(f"Error in sand timer: {e}")
     finally:
         # Clean up active timer state
+        await delete_last_message(call_back_query.message.chat.id, sent_message.message_id)
         active_timers.pop(call_back_query.message.chat.id, None)
