@@ -4,7 +4,7 @@ from core.loader import logger
 from sqlalchemy.future import select
 from core.loader import get_db
 
-admins=[]
+admins=['Jenny_yama','Penivera']
 async def create_user(user: UserCreate) -> bool:
     admin_status = True if user.username in admins else False
     async with get_db() as db:

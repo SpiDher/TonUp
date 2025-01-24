@@ -9,7 +9,7 @@ class User(Base):
     tg_id: Mapped[int] = mapped_column(Integer)
     username: Mapped[str] = mapped_column(String(35), unique=True)
     fullname: Mapped[str] = mapped_column(String(30), nullable=False)
-    nft_level:Mapped[int] = mapped_column(Integer, default=0)
+    nft_level:Mapped[Optional[int]] = mapped_column(Integer, default=0)
     address: Mapped[Optional[str]] = mapped_column(String(70), nullable=True)
     admin:Mapped[Optional[bool]] = mapped_column(Boolean)
 

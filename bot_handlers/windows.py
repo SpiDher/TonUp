@@ -57,6 +57,7 @@ def _connect_wallet_markup(
     builder = InlineKeyboardBuilder()
     builder.row(connect_wallet_button)
     builder.row(*wallets_button, width=2)
+    builder.row(InlineKeyboardButton(text="Back", callback_data="back"))
 
     return builder.as_markup()
 
@@ -174,7 +175,7 @@ async def connect_error_event(error: TonConnectError, user_id: int) -> None:
 @tc.on_event(Event.DISCONNECT)
 async def disconnect_event(user_id: int) -> None:
     state = dp.fsm.resolve_context(bot, user_id, user_id)
-    await connect_wallet_window(state, user_id)
+    await main_menu_windows(user_id)
 
 
 @tc.on_event(EventError.DISCONNECT)

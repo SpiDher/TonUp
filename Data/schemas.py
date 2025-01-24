@@ -5,7 +5,7 @@ class UserCreate(BaseModel):
     tg_id : int
     username : str
     fullname: str
-    admin: bool
+    admin: Optional[bool] = False
 
 class UserShow(UserCreate):
     class Config:

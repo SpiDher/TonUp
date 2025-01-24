@@ -52,11 +52,18 @@ async def callback_checks(callback_query:CallbackQuery,state:FSMContext):
         await wallet_connected_window(callback_query.from_user.id)
 
     elif callback_query.data == "connect_wallet":
-        await connect_wallet_window(state, callback_query.from_user.id)
+        if not connector.connected:
+            await connect_wallet_window(state, callback_query.from_user.id)
+        else:
+            await callback_query.answer(text="Wallet already connected", show_alert=True)
 
     elif callback_query.data == "disconnect_wallet":
-        connector.add_event_kwargs(Event.DISCONNECT, state=state)
-        await connector.disconnect_wallet()
+        if connector.connected:
+            connector.add_event_kwargs(Event.DISCONNECT, state=state)
+            await connector.disconnect_wallet()
+            await callback_query.answer(text="Wallet disconnected", show_alert=True)
+        else:
+            await callback_query.answer(text="Wallet already disconnected", show_alert=True)
 
     elif callback_query.data == "cancel_transaction":
         if connector.is_transaction_pending(rpc_request_id):
