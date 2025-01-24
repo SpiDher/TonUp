@@ -33,11 +33,12 @@ async def callback_checks(callback_query:CallbackQuery,state:FSMContext):
     if callback_query.data =='mint':
         await timer(callback_query)
     elif callback_query.data =='upgrade':
-        admin_status = get_admin_status(callback_query.from_user.id)
+        admin_status = await get_admin_status(callback_query.from_user.id)
         if admin_status:
-            #TODO - Just upgrade the NFT level of the user
+            #NOTE - Just upgrade the NFT level of the Admin user
             await timer(callback_query)
         else:
+            #NOTE - Ensure wallet is connected before and confrim txn before upgrade
             await run_connection(state,callback_query.from_user.id)
             
     elif callback_query.data == "back":
