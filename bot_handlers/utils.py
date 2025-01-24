@@ -10,7 +10,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery
 from tonutils.tonconnect.models import Event
 from tonutils.wallet.data import TransferData
-from core.crud import get_user_by_id
+from core.crud import get_user_by_id,get_admin_status
 
 
 async def run_connection(state:FSMContext,user_id:int):
@@ -33,7 +33,7 @@ async def callback_checks(callback_query:CallbackQuery,state:FSMContext):
     if callback_query.data =='mint':
         await timer(callback_query)
     elif callback_query.data =='upgrade':
-        admin_status = get_user_by_id(callback_query.from_user.id)
+        admin_status = get_admin_status(callback_query.from_user.id)
         if admin_status:
             #TODO - Just upgrade the NFT level of the user
             await timer(callback_query)

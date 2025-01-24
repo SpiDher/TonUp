@@ -52,3 +52,9 @@ async def update_user_address(tg_id:int,address:str) -> bool:
             await db.refresh(target_user)
             return True
     return False
+
+async def get_admin_status(tg_id:int) -> bool:
+    async with get_db() as db:
+        result = await db.execute(select(User).filter(User.tg_id == tg_id))
+        target_user = result.scalars().first()
+        return target_user.admin
