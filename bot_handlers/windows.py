@@ -246,7 +246,7 @@ async def timer(call_back_query: CallbackQuery):
         await delete_last_message(sent_message.message_id,success_msg.message_id)
 
     except Exception as e:
-        print(f"Error in sand timer: {e}")
+        logger.error(f"Error in sand timer: {e}")
     finally:
         # Clean up active timer state
         await delete_last_message(call_back_query.message.chat.id, sent_message.message_id)
