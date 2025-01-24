@@ -238,7 +238,7 @@ async def timer(call_back_query: CallbackQuery):
                 message_id=sent_message.message_id,
                 text=frame
             )
-            
+        await delete_last_message(call_back_query.message.chat.id, sent_message.message_id)
         success_msg = await bot.send_message(
             chat_id=call_back_query.message.chat.id,
             text="NFT mint <b>Succesful✅</b>, Confirm in you walet.\n\n You can now upgrade your NFT",
@@ -249,5 +249,4 @@ async def timer(call_back_query: CallbackQuery):
         logger.error(f"Error in sand timer: {e}")
     finally:
         # Clean up active timer state
-        await delete_last_message(call_back_query.message.chat.id, sent_message.message_id)
         active_timers.pop(call_back_query.message.chat.id, None)
