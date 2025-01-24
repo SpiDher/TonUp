@@ -34,7 +34,7 @@ async def callback_checks(callback_query:CallbackQuery,state:FSMContext):
         await timer(callback_query)
     elif callback_query.data =='upgrade':
         admin_status = get_user_by_id(callback_query.from_user.id)
-        if not admin_status:
+        if admin_status:
             #TODO - Just upgrade the NFT level of the user
             await timer(callback_query)
         else:
