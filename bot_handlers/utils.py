@@ -11,6 +11,12 @@ from aiogram.types import CallbackQuery
 from tonutils.tonconnect.models import Event
 from tonutils.wallet.data import TransferData
 from core.crud import get_user_by_id,get_admin_status
+from aiogram import Bot
+from contextlib import suppress
+
+async def delete_user_message(bot:Bot,chat_id:int,message_id:int):
+  with suppress(Exception):
+    await bot.delete_message(chat_id,message_id)
 
 
 async def run_connection(state:FSMContext,user_id:int):
