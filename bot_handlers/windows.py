@@ -24,7 +24,15 @@ async def delete_last_message(user_id: int, message_id: int) -> None:
             await bot.delete_message(chat_id=user_id, message_id=last_message_id)
 
     await state.update_data(last_message_id=message_id)
-    
+  
+async def mint_success_window(user_id:int):
+  builder = InlineKeyboardBuilder()
+  builder.row(InlineKeyboardButton(text='Back To Main Menu',callback_data='back'))
+  text="NFT mint <b>Succesful✅</b>, Confirm in you walet.\n\n You can now upgrade your NFT"
+  message = await bot.send_message(chat_id=user_id,text = text,reply_markup= builder.as_markup())
+  
+  await delete_last_message(user_id,message.message_id)
+  
 def main_menu()->InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.row(InlineKeyboardButton(text='Mint NFT',callback_data='mint'),
@@ -239,14 +247,10 @@ async def timer(call_back_query: CallbackQuery):
                 message_id=sent_message.message_id,
                 text=frame
             )
-        await delete_last_message(call_back_query.message.chat.id, sent_message.message_id)
+        #await delete_last_message(call_back_query.message.chat.id, sent_message.message_id)
         await bot.delete_message(call_back_query.message.chat.id, sent_message.message_id)
-        success_msg = await bot.send_message(
-            chat_id=call_back_query.message.chat.id,
-            text="NFT mint <b>Succesful✅</b>, Confirm in you walet.\n\n You can now upgrade your NFT",
-            reply_markup= main_menu()
-            )
-        await delete_last_message(sent_message.message_id,success_msg.message_id)
+        
+        await mint_success_window(call_back_query.message.chat.id)
 
     except Exception as e:
         logger.error(f"Error in sand timer: {e}")
