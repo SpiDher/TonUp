@@ -5,7 +5,10 @@ load_dotenv()
 import logging
 
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(filename)s - %(funcName)s - %(lineno)d - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 Token = os.getenv('Token')
 WEBHOOK_PATH = "/webhook"

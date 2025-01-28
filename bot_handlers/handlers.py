@@ -21,7 +21,7 @@ from aiogram.fsm.context import FSMContext
 from tonutils.tonconnect.models import Event
 from tonutils.wallet.data import TransferData
 
-from bot_handlers.utils import callback_checks
+from bot_handlers.utils import callback_checks,delete_user_message
  
 @router.message(Command("help"))
 async def help_handler(message: Message) -> None:
@@ -31,6 +31,7 @@ async def help_handler(message: Message) -> None:
                                             reply_markup=main_menu())
     '''NOTE - Delete last messsage based on the user's ID and the last message ID saved to the state, NOTE the new message ID is saved to the state and only deleted on the next function call '''
     await delete_last_message(message.from_user.id, current_message.message_id)
+    await delete_user_message(bot,message.from_user.id,message.message_id)
 
 
 
@@ -41,12 +42,15 @@ async def start_command(message: Message, state: FSMContext) -> None:
     #NOTE Run the asynchronous function to create the user
     await create_user(user=user)
     await main_menu_windows(message.from_user.id)
+    await delete_user_message(bot,message.from_user.id,message.message_id)
 
 @router.callback_query()
 async def callback_query_handler(callback_query: CallbackQuery, state: FSMContext) -> None:
     await callback_checks(callback_query,state)
     await callback_query.answer()
     
-
+@router.message()
+async def random_message(message:Message):
+  await delete_user_message(bot,message.from_user.id,message.message_id)
 
 
