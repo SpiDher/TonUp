@@ -29,14 +29,16 @@ async def help_handler(message: Message) -> None:
     current_message =await bot.send_message(chat_id=message.from_user.id,
                                             text=Help_message,
                                             reply_markup=main_menu())
-    #TODO - Check on the user_Id below and modify where neccesary
+    '''NOTE - Delete last messsage based on the user's ID and the last message ID saved to the state, NOTE the new message ID is saved to the state and only deleted on the next function call '''
     await delete_last_message(message.from_user.id, current_message.message_id)
 
 
 
 @router.message(CommandStart())
 async def start_command(message: Message, state: FSMContext) -> None:
+    #NOTE Create a new user or skip if the user already exist by intantiating the UserCreate object
     user= UserCreate(username=message.from_user.username,tg_id=message.from_user.id,fullname=message.from_user.full_name)
+    #NOTE Run the asynchronous function to create the user
     await create_user(user=user)
     await main_menu_windows(message.from_user.id)
 

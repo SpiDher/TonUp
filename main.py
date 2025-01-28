@@ -17,7 +17,7 @@ app = FastAPI(lifespan=lifespan)
 
 @app.post(WEBHOOK_PATH)
 async def handle_webhook(request: Request) -> dict:
-    """Handle incoming updates from Telegram"""
+    """NOTE Handle incoming updates from Telegram"""
     try:
         json_data = await request.json()
         update = Update(**json_data)
@@ -27,10 +27,9 @@ async def handle_webhook(request: Request) -> dict:
         raise HTTPException(status_code=400, detail="Invalid update payload")
     return {"ok": True}
 
-
 @app.post("/db", response_model=UserShow)
 async def root(request: UserCreate, db: AsyncSession = Depends(get_db)) -> UserShow:
-    """Health check endpoint"""
+    """NOTE Health check endpoint for production and database test"""
     # Query to check if the user already exists
     result = await db.execute(select(User).filter(User.username == request.username))
     existing_user = result.scalars().first()
@@ -43,9 +42,6 @@ async def root(request: UserCreate, db: AsyncSession = Depends(get_db)) -> UserS
         await db.commit()
         await db.refresh(new_user)
         return new_user
-    # result= await db.execute(select(User))
-    # users= result.scalars().all()
-    # return users
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
