@@ -50,7 +50,7 @@ async def lifespan(app:FastAPI):
     await bot.set_webhook(WEB_HOOK)
     logger.info("Webhook has been set.")
     yield
-    await bot.delete_webhook()
+    #await bot.delete_webhook()
     await bot.session.close()
 
 
